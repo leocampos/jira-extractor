@@ -2,7 +2,7 @@
 Extracts Issues (Stories) from Jira and finds dates for each Kanban stage, creating a CSV to build CFDs, Lead Time Scatterplots etc
 
 1. Download jira-extractor.jar
-https://github.com/leocampos/jira-extractor/blob/master/jira-extractor.jar
+https://github.com/leocampos/jira-extractor/blob/master/jira-extractor.jar?raw=true
 
 2. Write a config.properties in the same directory as the jar
 jira_url=https://your.jira.url
