@@ -7,8 +7,7 @@ import com.thoughtworks.jira.util.Config;
 public class Client {
 	public static void main(String[] args) {
 		Config config = new Config();
-		CfdCreator cfdCreator = new CfdCreator(new Jira(config, new AuthenticationReader()).retrieveStoriesWithChangelog(), config);
 		
-		cfdCreator.generateCSVAndWriteToFile();
+		new CfdCreator(new Jira(config, new AuthenticationReader()).retrieveStoriesWithChangelog(), config).generate();
 	}
 }

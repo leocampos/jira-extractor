@@ -1,7 +1,5 @@
 package com.thoughtworks.jira;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Arrays;
 
 import org.junit.Before;
@@ -9,6 +7,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import static org.junit.Assert.*;
 
 import com.thoughtworks.jira.util.Config;
 

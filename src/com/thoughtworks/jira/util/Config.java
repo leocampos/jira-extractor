@@ -32,9 +32,9 @@ public class Config {
 
 	public void initResourceBundle() {
 		try {
-//			File jarPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-//			String propertiesPath = jarPath.getParentFile().getAbsolutePath();
-			configBundle.load(new FileInputStream("./config.properties"));
+			File jarPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+			String propertiesPath = jarPath.getParentFile().getAbsolutePath();
+			configBundle.load(new FileInputStream(propertiesPath + "./config.properties"));
 		} catch (IOException e1) {
 			getLogger().log(Level.SEVERE, e1.getMessage(), e1);
 		}
