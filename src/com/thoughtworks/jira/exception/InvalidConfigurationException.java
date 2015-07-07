@@ -1,4 +1,4 @@
-package com.thoughtworks.jira;
+package com.thoughtworks.jira.exception;
 
 public class InvalidConfigurationException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.thoughtworks.jira.InvalidConfigurationException;
+import com.thoughtworks.jira.exception.InvalidConfigurationException;
 
 public class ConfigTest {
 	@Mock private ResourceBundle mockBundle;

@@ -62,7 +62,5 @@ public class Jira {
 		    	data.addStatusChange(new StatusChange(changelogItem, changelogGroup.getCreated()));
 		    }
 		}
-		
-		data.restructureChangelog();
 	}
 }

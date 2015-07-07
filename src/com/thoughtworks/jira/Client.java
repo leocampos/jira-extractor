@@ -1,7 +1,5 @@
 package com.thoughtworks.jira;
 
-import java.util.List;
-
 import com.thoughtworks.jira.util.AuthenticationReader;
 import com.thoughtworks.jira.util.CfdCreator;
 import com.thoughtworks.jira.util.Config;
@@ -9,9 +7,8 @@ import com.thoughtworks.jira.util.Config;
 public class Client {
 	public static void main(String[] args) {
 		Config config = new Config();
+		CfdCreator cfdCreator = new CfdCreator(new Jira(config, new AuthenticationReader()).retrieveStoriesWithChangelog(), config);
 		
-		List<Story> stories = new Jira(config, new AuthenticationReader()).retrieveStoriesWithChangelog();
-		
-		System.out.println(new CfdCreator(stories, config.getStatusList()).generate());
+		cfdCreator.generateCSVAndWriteToFile();
 	}
 }
