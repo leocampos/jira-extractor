@@ -1,6 +1,5 @@
 package com.thoughtworks.jira.util;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -32,9 +31,7 @@ public class Config {
 
 	public void initResourceBundle() {
 		try {
-			File jarPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-			String propertiesPath = jarPath.getParentFile().getAbsolutePath();
-			configBundle.load(new FileInputStream(propertiesPath + "./config.properties"));
+			configBundle.load(new FileInputStream("./config.properties"));
 		} catch (IOException e1) {
 			getLogger().log(Level.SEVERE, e1.getMessage(), e1);
 		}

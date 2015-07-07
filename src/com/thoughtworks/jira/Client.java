@@ -8,6 +8,6 @@ public class Client {
 	public static void main(String[] args) {
 		Config config = new Config();
 		
-		new CfdCreator(new Jira(config, new AuthenticationReader()).retrieveStoriesWithChangelog(), config).generate();
+		new CfdCreator(new Jira(config, new AuthenticationReader()).retrieveStoriesWithChangelog(), config).generateCSVAndWriteToFile();
 	}
 }

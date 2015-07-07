@@ -16,7 +16,10 @@ public class FileUtil {
 	}
 
 	private void generateCsvFile(String text) {
-		try(FileWriter writer = new FileWriter(config.getOutputPath())) {
+		String outputPath = config.getOutputPath();
+		config.getLogger().log(Level.INFO, "Writing file to " + outputPath);
+		
+		try(FileWriter writer = new FileWriter(outputPath)) {
 			writer.append(text);
 
 			writer.flush();
