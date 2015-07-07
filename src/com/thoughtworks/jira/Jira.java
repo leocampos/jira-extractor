@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.atlassian.jira.rest.client.api.IssueRestClient;
 import com.atlassian.jira.rest.client.api.IssueRestClient.Expandos;
@@ -13,9 +14,7 @@ import com.atlassian.jira.rest.client.api.domain.ChangelogItem;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
-import com.atlassian.util.concurrent.Promise;
 import com.thoughtworks.jira.util.AuthenticationReader;
-import com.thoughtworks.jira.util.CfdCreator;
 import com.thoughtworks.jira.util.Config;
 
 public class Jira {
@@ -29,38 +28,26 @@ public class Jira {
 		this.config = config;
 		this.authentication = authenticationReader;
 	}
+
+	public List<Story> retrieveStoriesWithChangelog() {
+		try(JiraRestClient restClient = getRestClient()) {
+			SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL()).claim();
+			readChangelogFromEachIssue(restClient.getIssueClient(), claim.getIssues());
+		} catch (Exception e) {
+			config.getLogger().log( Level.SEVERE, e.toString(), e);
+		}
+		
+		return Collections.unmodifiableList(issues);
+	}
 	
 	private JiraRestClient getRestClient() {
 		authentication.askForClientsLoginAndPassword();
 		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(config.getJiraUri(), authentication.getLogin(), authentication.getPassword());
 	}
 
-	public static void main(String[] args) {
-		Config config = new Config();
-		Jira jira = new Jira(config, new AuthenticationReader());
-		
-		List<Story> stories = jira.retrieveStoriesWithChangelog();
-		
-		System.out.println(new CfdCreator(stories, config.getStatusList()).generate());
-	}
-
-	private List<Story> retrieveStoriesWithChangelog() {
-		try(JiraRestClient restClient = getRestClient()) {
-			SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL()).claim();
-			readChangelogFromEachIssue(restClient.getIssueClient(), claim.getIssues());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return Collections.unmodifiableList(issues);
-	}
-
 	private void readChangelogFromEachIssue(IssueRestClient issueClient, Iterable<Issue> issues) {
-		for (Issue issue : issues) {
-			Promise<Issue> promissedIssueWithExpando = issueClient.getIssue(issue.getKey(), expand);
-			Issue issueWithExpando = promissedIssueWithExpando.claim();
-			retrieveChangelog(issueWithExpando);
-		}
+		for (Issue issue : issues)
+			retrieveChangelog(issueClient.getIssue(issue.getKey(), expand).claim());
 	}
 
 	private void retrieveChangelog(Issue issueWithExpando) {
