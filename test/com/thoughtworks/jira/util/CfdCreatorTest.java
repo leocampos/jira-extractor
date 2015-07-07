@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -36,6 +37,7 @@ public class CfdCreatorTest {
 		Mockito.stub(mockConfig.getStatusList()).toReturn(Arrays.asList(new String[]{BACKLOG.toUpperCase(),READY_FOR_DEV.toUpperCase(),IN_PROGRESS.toUpperCase(),QA.toUpperCase(),DONE.toUpperCase()}));
 		Mockito.stub(mockConfig.getDateTimeFormatter()).toReturn(formatter);
 		Mockito.stub(mockConfig.getCSVSeparator()).toReturn(";");
+		Mockito.stub(mockConfig.getLogger()).toReturn(Logger.getLogger("TESTE"));
 	}
 	
 	@Test

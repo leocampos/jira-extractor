@@ -1,6 +1,6 @@
 package com.thoughtworks.jira.util;
 
-import java.util.ResourceBundle;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +11,7 @@ import org.mockito.MockitoAnnotations;
 import com.thoughtworks.jira.exception.InvalidConfigurationException;
 
 public class ConfigTest {
-	@Mock private ResourceBundle mockBundle;
+	@Mock private Properties mockBundle;
 	private Config config = new Config();
 	
 	@Before

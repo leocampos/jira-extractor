@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Level;
 
 import org.joda.time.DateTime;
 
@@ -155,10 +156,14 @@ public class CfdCreator {
 	}
 
 	public String generate() {
+		config.getLogger().log(Level.INFO, "Generating CFD Data");
+		
 		StringBuilder data = new StringBuilder();
 		
 		buildHeader(data);
 		generateDataForStories(data);
+		
+		config.getLogger().log(Level.INFO, "CFD Data generated");
 		
 		return data.toString();
 	}
@@ -178,6 +183,8 @@ public class CfdCreator {
 	}
 	
 	public void generateCSVAndWriteToFile() {
+		config.getLogger().log(Level.INFO, "Writing CFD data to file");
+		
 		config.getFileUtil().writeToFile(generate());
 	}
 

@@ -1,1 +1,4 @@
 cfd.csv
+bin/
+*.log
+*.class

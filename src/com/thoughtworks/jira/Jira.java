@@ -30,6 +30,8 @@ public class Jira {
 	}
 
 	public List<Story> retrieveStoriesWithChangelog() {
+		config.getLogger().log(Level.INFO, "Starting to retrive stories.");
+		
 		try(JiraRestClient restClient = getRestClient()) {
 			SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL()).claim();
 			readChangelogFromEachIssue(restClient.getIssueClient(), claim.getIssues());
@@ -51,6 +53,8 @@ public class Jira {
 	}
 
 	private void retrieveChangelog(Issue issueWithExpando) {
+		config.getLogger().log(Level.INFO, String.format("Retrieving changelog for %s", issueWithExpando.getKey()));
+		
 		Story data = new Story(issueWithExpando.getKey(), config);
 		data.setCreationDate(issueWithExpando.getCreationDate());
 		issues.add(data);
