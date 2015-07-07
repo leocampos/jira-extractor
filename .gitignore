@@ -2,3 +2,4 @@ cfd.csv
 bin/
 *.log
 *.class
+config.properties
