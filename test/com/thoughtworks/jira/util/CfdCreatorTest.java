@@ -54,8 +54,8 @@ public class CfdCreatorTest {
 	}
 
 	private List<Story> createAndRestructure(List<Story> stories) {
-		CfdCreator creator = new CfdCreator(stories, mockConfig);
-		List<Story> reestructuredList = creator.restructureDataForCFD();
+		CfdCreator creator = new CfdCreator(mockConfig);
+		List<Story> reestructuredList = creator.restructureDataForCFD(stories);
 		return reestructuredList;
 	}
 	
@@ -147,8 +147,8 @@ public class CfdCreatorTest {
 		story2.setCreationDate(parseDate("05/07/2015 10:30"));
 		stories.add(story2);
 		
-		CfdCreator creator = new CfdCreator(stories, mockConfig);
-		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE\nHistória 1;30/06/2015 10:30;01/07/2015 10:30;02/07/2015 10:30;;\nHistória 2;05/07/2015 10:30;;;;\n", creator.generate());
+		CfdCreator creator = new CfdCreator(mockConfig);
+		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE\nHistória 1;30/06/2015 10:30;01/07/2015 10:30;02/07/2015 10:30;;\nHistória 2;05/07/2015 10:30;;;;\n", creator.generate(stories));
 	}
 
 	private DateTime parseDate(String date) {

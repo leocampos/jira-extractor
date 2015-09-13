@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.thoughtworks.jira.util.Config;
 
 public class Story {
@@ -19,6 +20,12 @@ public class Story {
 	public Story(String key, Config config) {
 		this.key = key;
 		this.config = config;
+	}
+
+	public Story(Issue issueWithExpando, Config config) {
+		this(issueWithExpando.getKey(), config);
+
+		setCreationDate(issueWithExpando.getCreationDate());
 	}
 
 	public String getKey() {

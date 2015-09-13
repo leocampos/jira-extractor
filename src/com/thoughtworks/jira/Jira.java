@@ -30,16 +30,24 @@ public class Jira {
 	}
 
 	public List<Story> retrieveStoriesWithChangelog() {
-		config.getLogger().log(Level.INFO, "Starting to retrive stories.");
+		logINFO("Starting to retrive stories.");
 		
 		try(JiraRestClient restClient = getRestClient()) {
-			SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL(), 1000, 0, null).claim();
-			readChangelogFromEachIssue(restClient.getIssueClient(), claim.getIssues());
+			readChangelogFromEachIssueAndPopulateIssues(restClient.getIssueClient(), retrieveIssues(restClient));
 		} catch (Exception e) {
 			config.getLogger().log( Level.SEVERE, e.toString(), e);
 		}
 		
 		return Collections.unmodifiableList(issues);
+	}
+
+	private Iterable<Issue> retrieveIssues(JiraRestClient restClient) {
+		SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL(), config.getPageSize(), 0, null).claim();
+		return claim.getIssues();
+	}
+
+	private void logINFO(String msg) {
+		config.getLogger().log(Level.INFO, msg);
 	}
 	
 	private JiraRestClient getRestClient() {
@@ -47,24 +55,31 @@ public class Jira {
 		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(config.getJiraUri(), authentication.getLogin(), authentication.getPassword());
 	}
 
-	private void readChangelogFromEachIssue(IssueRestClient issueClient, Iterable<Issue> issues) {
+	private void readChangelogFromEachIssueAndPopulateIssues(IssueRestClient issueClient, Iterable<Issue> issues) {
 		for (Issue issue : issues)
-			retrieveChangelog(issueClient.getIssue(issue.getKey(), expand).claim());
+			retrieveChangelogAndPopulateIssues(issueClient.getIssue(issue.getKey(), expand).claim());
 	}
 
-	private void retrieveChangelog(Issue issueWithExpando) {
-		config.getLogger().log(Level.INFO, String.format("Retrieving changelog for %s", issueWithExpando.getKey()));
+	private void retrieveChangelogAndPopulateIssues(Issue issueWithExpando) {
+		logINFO(String.format("Retrieving changelog for %s", issueWithExpando.getKey()));
 		
-		Story data = new Story(issueWithExpando.getKey(), config);
-		data.setCreationDate(issueWithExpando.getCreationDate());
-		issues.add(data);
+		Story story = new Story(issueWithExpando, config);
+		addStatusChangeToStory(issueWithExpando, story);
 		
+		issues.add(story);
+	}
+
+	private void addStatusChangeToStory(Issue issueWithExpando, Story story) {
 		for (ChangelogGroup changelogGroup : issueWithExpando.getChangelog()) {
-		    for (ChangelogItem changelogItem : changelogGroup.getItems()) {
-		    	if(!"status".equals(changelogItem.getField())) continue;
-		    	
-		    	data.addStatusChange(new StatusChange(changelogItem, changelogGroup.getCreated()));
-		    }
+			for (ChangelogItem changelogItem : changelogGroup.getItems()) {
+				if(!isStatusChange(changelogItem)) continue;
+				
+				story.addStatusChange(new StatusChange(changelogItem, changelogGroup.getCreated()));
+			}
 		}
+	}
+
+	private boolean isStatusChange(ChangelogItem changelogItem) {
+		return "status".equalsIgnoreCase(changelogItem.getField());
 	}
 }

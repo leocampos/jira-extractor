@@ -12,18 +12,14 @@ import com.thoughtworks.jira.StatusChange;
 import com.thoughtworks.jira.Story;
 
 public class CfdCreator {
-	private List<Story> stories;
 	private List<String> statuses;
 	private Config config;
 
-	public CfdCreator(List<Story> stories, Config config) {
+	public CfdCreator(Config config) {
 		this.config = config;
 		statuses = config.getStatusList();
-		if(stories == null) throw new NullPointerException("Lista de histórias não pode ser nula");
-		
-		this.stories = stories;
 	}
-	
+
 	private void calculateDates(Story story) {
 		HashMap<String, DateTime> dates = new HashMap<>();
 		
@@ -43,7 +39,7 @@ public class CfdCreator {
 	 * When they go back, we need to pop the former stages from the stack, like they had never been there in the first place.<br/>
 	 * @return cloned story list with reestructed changelog for each story
 	 */
-	public List<Story> restructureDataForCFD() {
+	public List<Story> restructureDataForCFD(List<Story> stories) {
 		List<Story> restructuredStories = new ArrayList<Story>(stories.size());
 		
 		stories.forEach((story) -> {
@@ -155,13 +151,13 @@ public class CfdCreator {
 		return new ArrayList<StatusChange>(story.getChangelog());
 	}
 
-	public String generate() {
+	public String generate(List<Story> stories) {
 		config.getLogger().log(Level.INFO, "Generating CFD Data");
 		
 		StringBuilder data = new StringBuilder();
 		
 		buildHeader(data);
-		generateDataForStories(data);
+		generateDataForStories(stories, data);
 		
 		config.getLogger().log(Level.INFO, "CFD Data generated");
 		
@@ -176,16 +172,26 @@ public class CfdCreator {
 		data.append("\n");
 	}
 
-	private void generateDataForStories(StringBuilder data) {
-		restructureDataForCFD().forEach((story)->{
+	private void generateDataForStories(List<Story> stories, StringBuilder data) {
+		restructureDataForCFD(stories).forEach((story)->{
 			generateDataForStory(data, story);
 		});
 	}
 	
-	public void generateCSVAndWriteToFile() {
-		config.getLogger().log(Level.INFO, "Writing CFD data to file");
+	public void generateCSVAndWriteToFile(List<Story> stories) {
+		logINFO("Writing CFD data to file");
 		
-		config.getFileUtil().writeToFile(generate());
+		if(stories == null) {
+			logINFO("No data to write.");
+			
+			return;
+		}
+		
+		config.getFileUtil().writeToFile(generate(stories));
+	}
+
+	private void logINFO(String msg) {
+		config.getLogger().log(Level.INFO, msg);
 	}
 
 	private void generateDataForStory(StringBuilder data, Story story) {
