@@ -25,3 +25,19 @@ csv_separator=;
 
 Now, in a terminal, run the following command
 java -jar jira-extractor.jar
+
+SSL problem
+===========
+If you run the above command and gets the following exception:
+
+javax.net.ssl.SSLHandshakeException
+
+The problem can be solved (not so easily, though). I visited Jira using a Firefox browser, the in Settings, Advanced, Certificates, there is a "Certificate button". Click it.
+
+When you find the appropriate certificate, download it.
+
+From now on, I only tested on a Mac...
+No, you're not done yet, now you need to run the following command:
+sudo keytool -import -file <PATH_TO_DOWNLOADED_FILE> -alias <MEANINGFULL_ALIAS> -keystore $JAVA_HOME/jre/lib/security/cacerts
+
+It should work now
