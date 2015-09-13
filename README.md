@@ -32,7 +32,7 @@ If you run the above command and gets the following exception:
 
 javax.net.ssl.SSLHandshakeException
 
-The problem can be solved (not so easily, though). I visited Jira using a Firefox browser, the in Settings, Advanced, Certificates, there is a "Certificate button". Click it.
+The problem can be solved (not so easily, though). I visited Jira using a Firefox browser, in Settings >> Advanced >> Certificates, there is a "Certificate button". Click it.
 
 When you find the appropriate certificate, download it.
 
