@@ -8,7 +8,7 @@ Steps
 1. Download jira-extractor.jar
 https://github.com/leocampos/jira-extractor/blob/master/jira-extractor.jar?raw=true
 
-2. Write a config.properties in the same directory as the jar
+2. Write a config.properties in the same directory as the jar, WRITE IT IN UTF-8
 
 jira_url=https://your.jira.url
 
