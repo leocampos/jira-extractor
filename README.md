@@ -40,4 +40,6 @@ From now on, I only tested on a Mac...
 No, you're not done yet, now you need to run the following command:
 sudo keytool -import -file <PATH_TO_DOWNLOADED_FILE> -alias <MEANINGFULL_ALIAS> -keystore $JAVA_HOME/jre/lib/security/cacerts
 
+** This command will ask you first your password because of your sudo, but it will also ask another one. This second one is most probably "changeit". **
+
 It should work now
