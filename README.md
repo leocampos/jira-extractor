@@ -22,6 +22,8 @@ output_path=./cfd.csv
 
 csv_separator=;
 
+page_size=1000
+
 
 Now, in a terminal, run the following command
 java -jar jira-extractor.jar
