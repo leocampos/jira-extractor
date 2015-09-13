@@ -33,7 +33,7 @@ public class Jira {
 		config.getLogger().log(Level.INFO, "Starting to retrive stories.");
 		
 		try(JiraRestClient restClient = getRestClient()) {
-			SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL()).claim();
+			SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL(), 1000, 0, null).claim();
 			readChangelogFromEachIssue(restClient.getIssueClient(), claim.getIssues());
 		} catch (Exception e) {
 			config.getLogger().log( Level.SEVERE, e.toString(), e);
