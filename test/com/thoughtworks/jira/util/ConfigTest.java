@@ -12,7 +12,9 @@ import com.thoughtworks.jira.exception.InvalidConfigurationException;
 
 public class ConfigTest {
 	@Mock private Properties mockBundle;
-	private Config config = new Config();
+	private Config config = new Config() {
+		public void initResourceBundle(String propertiesPath) {};
+	};
 	
 	@Before
 	public void setup() {
