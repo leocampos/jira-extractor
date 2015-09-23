@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +23,7 @@ public class Config {
 	private static final String OUTPUT_PATH_KEY = "output_path";
 	private static final String DATE_FORMAT_KEY = "date_format";
 	private static final String PAGE_SIZE = "page_size";
-	private static final Integer DEFAULT_PAGE_SIZE = 1000;
+	private static final Integer DEFAULT_PAGE_SIZE = 50;
 
 	private Properties configBundle = new Properties();
 	private final Logger log = Logger.getLogger("Jira-extractor");
@@ -40,7 +41,6 @@ public class Config {
 
 	public void createUTF8Properties() {
 		configBundle = new Properties();
-		
 	}
 	
 	public void initResourceBundle(String propertiesPath) {
@@ -49,14 +49,6 @@ public class Config {
 		} catch(IOException e) {
 			getLogger().log(Level.SEVERE, e.getMessage(), e);
 		}
-//		
-//		
-//		
-//		try {
-//			configBundle.load(new FileInputStream(propertiesPath));
-//		} catch (IOException e1) {
-//			getLogger().log(Level.SEVERE, e1.getMessage(), e1);
-//		}
 	}
 
 	public DateTimeFormatter getDateTimeFormatter() {
@@ -139,5 +131,10 @@ public class Config {
 
 	public void setConfig(Properties configBundle) {
 		this.configBundle = configBundle;
+	}
+
+	public Set<String> getFields() {
+		//Not implemented yet
+		return null;
 	}
 }

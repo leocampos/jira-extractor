@@ -3,6 +3,7 @@ package com.thoughtworks.jira;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -12,7 +13,6 @@ import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.domain.ChangelogGroup;
 import com.atlassian.jira.rest.client.api.domain.ChangelogItem;
 import com.atlassian.jira.rest.client.api.domain.Issue;
-import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.thoughtworks.jira.util.AuthenticationReader;
 import com.thoughtworks.jira.util.Config;
@@ -41,9 +41,8 @@ public class Jira {
 		return Collections.unmodifiableList(issues);
 	}
 
-	private Iterable<Issue> retrieveIssues(JiraRestClient restClient) {
-		SearchResult claim = restClient.getSearchClient().searchJql(config.getJQL(), config.getPageSize(), 0, null).claim();
-		return claim.getIssues();
+	private Iterator<Issue> retrieveIssues(JiraRestClient restClient) {
+		return new JiraIssuesIterator(config, restClient.getSearchClient());
 	}
 
 	private void logINFO(String msg) {
@@ -55,9 +54,12 @@ public class Jira {
 		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(config.getJiraUri(), authentication.getLogin(), authentication.getPassword());
 	}
 
-	private void readChangelogFromEachIssueAndPopulateIssues(IssueRestClient issueClient, Iterable<Issue> issues) {
-		for (Issue issue : issues)
+	private void readChangelogFromEachIssueAndPopulateIssues(IssueRestClient issueClient, Iterator<Issue> issueIterator) {
+		while(issueIterator.hasNext()) {
+			Issue issue = issueIterator.next();
+			
 			retrieveChangelogAndPopulateIssues(issueClient.getIssue(issue.getKey(), expand).claim());
+		}	
 	}
 
 	private void retrieveChangelogAndPopulateIssues(Issue issueWithExpando) {
