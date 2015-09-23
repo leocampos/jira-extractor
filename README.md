@@ -22,7 +22,7 @@ output_path=./cfd.csv
 
 csv_separator=;
 
-page_size=1000
+page_size=50
 
 
 Now, in a terminal, run the following command
