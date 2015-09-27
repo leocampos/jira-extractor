@@ -26,7 +26,7 @@ page_size=50
 
 fields=Story Points
 
-max_items=10
+max_items=1000
 
 
 Now, in a terminal, run the following command
