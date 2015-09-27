@@ -155,7 +155,7 @@ public class CfdCreatorTest {
 		story2.setFields(fields);
 		stories.add(story2);
 		
-		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE;A;B\nHistória 1;30/06/2015 10:30;01/07/2015 10:30;02/07/2015 10:30;;AV;BV\nHistória 2;05/07/2015 10:30;;;;AV;BV\n", creator.generate(stories));
+		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE;A;B\nHistória 1;30/06/2015 10:30;01/07/2015 10:30;02/07/2015 10:30;;;AV;BV\nHistória 2;05/07/2015 10:30;;;;;AV;BV\n", creator.generate(stories));
 	}
 
 	private void prepareFields(Map<String, String> fields) {

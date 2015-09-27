@@ -43,11 +43,14 @@ public class JiraIssuesIterator implements Iterator<Issue> {
 		this.iterator = iterator;
 	}
 
-    private Set<String> addRequiredFieldsIfNotEmpty(Set<String> newFields) {
-    	if(newFields == null) return newFields;
+    private Set<String> addRequiredFieldsIfNotEmpty(Set<String> originalFields) {
+    	if(originalFields == null) return null;
     	
-    	if(!(newFields.contains("*all") || newFields.contains("*navigable")))
-    		newFields.addAll(new HashSet<String>(Arrays.asList(new String[]{"summary", "issuetype", "created", "updated", "project" , "status"})));
+    	if((originalFields.contains("*all") || originalFields.contains("*navigable"))) return originalFields;
+    	
+    	Set<String> newFields = new HashSet<>();
+    	newFields.addAll(originalFields);
+    	newFields.addAll(new HashSet<String>(Arrays.asList(new String[]{"summary", "issuetype", "created", "updated", "project" , "status"})));
     	
 		return newFields;
 	}

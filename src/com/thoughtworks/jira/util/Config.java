@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -151,16 +152,13 @@ public class Config {
 
 	public Set<String> getFields() {
 		if(fields != null) return fields;
-		
 		if(!configBundle.containsKey(FIELDS)) return null;
 		
 		String fieldsData = configBundle.getProperty(FIELDS);
 		if("".equals(fieldsData.trim())) return null;
 		
-		fields = new HashSet<String>(Arrays.asList(fieldsData.split(" *, *")));
+		fields = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(fieldsData.split(" *, *"))));
 		
 		return fields;
 	}
-	
-	
 }

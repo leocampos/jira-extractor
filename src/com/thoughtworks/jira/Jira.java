@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import com.atlassian.jira.rest.client.api.IssueRestClient;
@@ -18,11 +21,14 @@ import com.thoughtworks.jira.util.AuthenticationReader;
 import com.thoughtworks.jira.util.Config;
 
 public class Jira {
+	private static final int NUM_THREADS = 6;
+	
 	private Config config;
 	private AuthenticationReader authentication;
 	private Expandos[] expandArr = new Expandos[] { Expandos.CHANGELOG };
 	private List<Expandos> expand = Arrays.asList(expandArr);
 	private List<Story> issues = new ArrayList<>();
+	private ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
 
 	public Jira(Config config, AuthenticationReader authenticationReader) {
 		this.config = config;
@@ -49,6 +55,10 @@ public class Jira {
 		config.getLogger().log(Level.INFO, msg);
 	}
 	
+	private void logWarning(String msg) {
+		config.getLogger().log(Level.WARNING, msg);
+	}
+	
 	private JiraRestClient getRestClient() {
 		authentication.askForClientsLoginAndPassword();
 		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(config.getJiraUri(), authentication.getLogin(), authentication.getPassword());
@@ -58,8 +68,28 @@ public class Jira {
 		while(issueIterator.hasNext()) {
 			Issue issue = issueIterator.next();
 			
-			retrieveChangelogAndPopulateIssues(issueClient.getIssue(issue.getKey(), expand).claim());
-		}	
+			retrieveChangeLogAndPopulateIssuesAsync(issueClient, issue);
+		}
+		
+		awaitTermination();
+	}
+
+	private void awaitTermination() {
+		threadPool.shutdown();
+		try {
+			threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+			logWarning("Some items didn't finish loading");
+		}
+	}
+
+	private void retrieveChangeLogAndPopulateIssuesAsync(IssueRestClient issueClient, Issue issue) {
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				retrieveChangelogAndPopulateIssues(issueClient.getIssue(issue.getKey(), expand).claim());
+			}
+		});
 	}
 
 	private void retrieveChangelogAndPopulateIssues(Issue issueWithExpando) {

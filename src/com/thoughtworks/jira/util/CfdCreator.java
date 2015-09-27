@@ -206,14 +206,8 @@ public class CfdCreator {
 
 	private void appendFieldsToEachLine(StringBuilder data, Story story) {
 		config.getFields().forEach((field) -> {
-			data.append(story.getFieldValueByName(field)).append(config.getCSVSeparator());
+			data.append(config.getCSVSeparator()).append(story.getFieldValueByName(field));
 		});
-		
-		removeTrailingSeparator(data);
-	}
-
-	private void removeTrailingSeparator(StringBuilder data) {
-		data.delete(data.length() - config.getCSVSeparator().length(), data.length());
 	}
 
 	private void appendStatusesDatesToEachLine(StringBuilder data, Story story) {
