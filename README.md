@@ -24,6 +24,10 @@ csv_separator=;
 
 page_size=50
 
+fields=Story Points
+
+max_items=10
+
 
 Now, in a terminal, run the following command
 java -jar jira-extractor.jar
