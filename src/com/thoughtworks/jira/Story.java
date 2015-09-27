@@ -3,19 +3,23 @@ package com.thoughtworks.jira;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.IssueField;
 import com.thoughtworks.jira.util.Config;
 
-public class Story {
+public class Story implements Cloneable {
 	private String key;
 	private List<StatusChange> changelog;
 	private Config config;
 	private HashMap<String, DateTime> dates;
 	private String status ;
 	private DateTime creationDate;
+	private Map<String, String> fields = null;
+	private Issue issueWithExpando;
 
 	public Story(String key, Config config) {
 		this.key = key;
@@ -24,6 +28,7 @@ public class Story {
 
 	public Story(Issue issueWithExpando, Config config) {
 		this(issueWithExpando.getKey(), config);
+		this.issueWithExpando = issueWithExpando;
 
 		setCreationDate(issueWithExpando.getCreationDate());
 	}
@@ -96,5 +101,59 @@ public class Story {
 
 	public void setDates(HashMap<String, DateTime> dates) {
 		this.dates = dates;
+	}
+
+	public Map<String, String> getFields() {
+		fillFieldsInfoAndCreateFieldsIfEmpty();
+		
+		return fields ;
+	}
+
+	private void fillFieldsInfoAndCreateFieldsIfEmpty() {
+		if(fields != null) return;
+		
+		fields = new HashMap<String, String>();
+			
+		fillFieldsInfo();
+	}
+
+	private void fillFieldsInfo() {
+		if(config.getFields() == null) return;
+		if(issueWithExpando == null) return;
+		if(issueWithExpando.getFields() == null) return;
+		
+		config.getFields().forEach((fieldName) -> {
+			IssueField issueField = issueWithExpando.getFieldByName(fieldName);
+			if(issueField != null) {
+				String value = issueField.getValue() == null ? "" : issueField.getValue().toString();
+				fields.put(issueField.getName(), value);
+			}
+		});
+	}
+
+	@Override
+	public Story clone() {
+		Story clonedStory = new Story(getKey(), config);
+		clonedStory.setCreationDate(getCreationDate());
+		clonedStory.setChangelog(new ArrayList<StatusChange>(getChangelog()));
+		cloneFields(clonedStory);
+
+		return clonedStory;
+	}
+
+	private void cloneFields(Story clonedStory) {
+		Map<String, String> clonedFields = new HashMap<String, String>();
+		clonedFields.putAll(getFields());
+		clonedStory.setFields(clonedFields);
+	}
+
+	public void setFields(Map<String, String> fields) {
+		this.fields = fields;
+	}
+
+	public String getFieldValueByName(String fieldName) {
+		if(!getFields().containsKey(fieldName)) return "";
+		
+		return getFields().get(fieldName);
 	}
 }

@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -24,11 +26,14 @@ public class Config {
 	private static final String DATE_FORMAT_KEY = "date_format";
 	private static final String PAGE_SIZE = "page_size";
 	private static final Integer DEFAULT_PAGE_SIZE = 50;
+	public static final String FIELDS = "fields";
+	public static final String MAX_NUM_OF_ITEMS = "max_items";
 
 	private Properties configBundle = new Properties();
 	private final Logger log = Logger.getLogger("Jira-extractor");
 	private DateTimeFormatter formatter = null;
 	private String csvSeparator;
+	private Set<String> fields;
 	private String outputPath;
 	
 	public Config() {
@@ -70,6 +75,17 @@ public class Config {
 		
 		return DEFAULT_PAGE_SIZE;
 	}
+	
+	public Integer getMaxNumberOfItems() {
+		if(configBundle.containsKey(MAX_NUM_OF_ITEMS))
+			try {
+				return Integer.parseInt(configBundle.getProperty(MAX_NUM_OF_ITEMS));
+			} catch (NumberFormatException e) {
+				throw new InvalidConfigurationException("Max number of fields must be a number");
+			}
+		
+		return null;
+	}
 
 	public URI getJiraUri() {
 		return URI.create(configBundle.getProperty("jira_url"));
@@ -85,7 +101,7 @@ public class Config {
 		return createStatusListUppercased();
 	}
 
-	private ArrayList<String> createStatusListUppercased() {
+	private List<String> createStatusListUppercased() {
 		ArrayList<String> returnList = new ArrayList<>();
 
 		for (String status : configBundle.getProperty("status_list").split(", *"))
@@ -134,7 +150,17 @@ public class Config {
 	}
 
 	public Set<String> getFields() {
-		//Not implemented yet
-		return null;
+		if(fields != null) return fields;
+		
+		if(!configBundle.containsKey(FIELDS)) return null;
+		
+		String fieldsData = configBundle.getProperty(FIELDS);
+		if("".equals(fieldsData.trim())) return null;
+		
+		fields = new HashSet<String>(Arrays.asList(fieldsData.split(" *, *")));
+		
+		return fields;
 	}
+	
+	
 }

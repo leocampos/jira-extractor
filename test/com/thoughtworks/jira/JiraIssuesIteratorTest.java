@@ -1,7 +1,11 @@
 package com.thoughtworks.jira;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,6 +37,9 @@ public class JiraIssuesIteratorTest {
 
 	@Mock
 	private SearchResult mockSearchResultPageTwo;
+
+	@Mock
+	private Iterator<Issue> mockIterator;
 	
 	private static final String JQL = "JQL";
 	
@@ -45,6 +52,37 @@ public class JiraIssuesIteratorTest {
 		Mockito.when(mockConfig.getJQL()).thenReturn(JQL);
 		Mockito.when(mockConfig.getPageSize()).thenReturn(pageSize);
 		Mockito.when(mockConfig.getFields()).thenReturn(null);
+		Mockito.stub(mockConfig.getMaxNumberOfItems()).toReturn(null);
+	}
+	
+	@Test
+	public void mandatoryFieldsShouldBeAddedIfAnyIfPointedOut() throws Exception {
+		Mockito.stub(mockConfig.getFields()).toReturn(new HashSet<String>(Arrays.asList(new String[]{"A"})));
+		JiraIssuesIterator issuesIterator = new JiraIssuesIterator(mockConfig, mockSearchClient);
+		
+		Set<String> expectedFields = new HashSet<>(Arrays.asList(new String[]{"A","summary","issuetype","created","updated","project","status"}));
+		
+		Assert.assertTrue(issuesIterator.getFields().containsAll(expectedFields));
+	}
+	
+	@Test
+	public void mandatoryFieldsShouldNotBeAddedIfSpecialAllIsSet() throws Exception {
+		assertSpecialFieldDoesNotIncludeMandatoryFields("*all");
+	}
+	
+	@Test
+	public void mandatoryFieldsShouldNotBeAddedIfSpecialNavigableIsSet() throws Exception {
+		assertSpecialFieldDoesNotIncludeMandatoryFields("*navigable");
+	}
+
+	private void assertSpecialFieldDoesNotIncludeMandatoryFields(String specialField) {
+		Mockito.stub(mockConfig.getFields()).toReturn(new HashSet<String>(Arrays.asList(new String[]{specialField})));
+		JiraIssuesIterator issuesIterator = new JiraIssuesIterator(mockConfig, mockSearchClient);
+		
+		Set<String> expectedFields = new HashSet<>(Arrays.asList(new String[]{specialField}));
+		
+		Assert.assertTrue(issuesIterator.getFields().containsAll(expectedFields));
+		Assert.assertTrue(issuesIterator.getFields().size() == 1);
 	}
 
 	@Test
@@ -65,6 +103,21 @@ public class JiraIssuesIteratorTest {
 	private void preparePageOne(int pageSize, int actualPage) {
 		Mockito.when(mockSearchClient.searchJql(JQL, pageSize, actualPage * pageSize, null)).thenReturn(mockPromise);
 		Mockito.when(mockPromise.claim()).thenReturn(mockSearchResult);
+	}
+	
+	@Test
+	public void maxNumberOfItemsShouldLimitIteration() throws Exception {
+		Mockito.stub(mockConfig.getMaxNumberOfItems()).toReturn(5);
+		JiraIssuesIterator iterator = new JiraIssuesIterator(mockConfig, mockSearchClient);
+		iterator.setSearchResult(mockSearchResult);
+		iterator.setIterator(mockIterator);
+		Mockito.stub(mockIterator.hasNext()).toReturn(true);
+		Mockito.stub(mockIterator.next()).toReturn(null);
+		
+		for (int i = 0; i < 5; i++)
+			iterator.next();
+		
+		Assert.assertFalse(iterator.hasNext());
 	}
 	
 	@Test

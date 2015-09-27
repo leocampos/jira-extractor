@@ -1,5 +1,8 @@
 package com.thoughtworks.jira;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -21,18 +24,39 @@ public class JiraIssuesIterator implements Iterator<Issue> {
     private Iterator<Issue> iterator;
 
     private SearchResult searchResult;
+	private Integer maxNumberOfItems;
+	private int actualItem = 0;
     
     public JiraIssuesIterator(Config config, SearchRestClient searchClient) {
 		this.searchClient = searchClient;
 		this.jql = config.getJQL();
 		this.pageSize = config.getPageSize();
-		this.fields = config.getFields();
+		this.fields = addRequiredFieldsIfNotEmpty(config.getFields());
+		this.maxNumberOfItems = config.getMaxNumberOfItems();
     }
+    
+    public void setSearchResult(SearchResult searchResult) {
+		this.searchResult = searchResult;
+	}
+    
+    public void setIterator(Iterator<Issue> iterator) {
+		this.iterator = iterator;
+	}
 
+    private Set<String> addRequiredFieldsIfNotEmpty(Set<String> newFields) {
+    	if(newFields == null) return newFields;
+    	
+    	if(!(newFields.contains("*all") || newFields.contains("*navigable")))
+    		newFields.addAll(new HashSet<String>(Arrays.asList(new String[]{"summary", "issuetype", "created", "updated", "project" , "status"})));
+    	
+		return newFields;
+	}
 
-    @Override
+	@Override
     public boolean hasNext() {
     	setupIfFirstTime();
+    	
+    	if(maxNumberOfItems != null && actualItem >= maxNumberOfItems) return false;
     	
     	if(hasNextInActualPage()) return true;
     	if(isLastPage()) return false;
@@ -64,15 +88,21 @@ public class JiraIssuesIterator implements Iterator<Issue> {
 
     @Override
     public Issue next() {
-    	if(hasNext())
+    	if(hasNext()) {
+    		actualItem++;
     		return iterator.next();
+    	}
     	
         throw new NoSuchElementException();
     }
 
 
 	private boolean hasNextInActualPage() {
-		return iterator.hasNext();
+		return (iterator.hasNext());
+	}
+	
+	public Set<String> getFields() {
+		return Collections.unmodifiableSet(fields);
 	}
 
     private void search() {

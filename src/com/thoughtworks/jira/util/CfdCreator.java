@@ -52,19 +52,12 @@ public class CfdCreator {
 	}
 	
 	private Story cloneAndReestructureStory(Story story) {
-		Story clonedStory = cloneStory(story);
+		Story clonedStory = story.clone();
 		
 		addFirstStageToChangelog(clonedStory);
 		addIntermediateStepsIfThereIsGap(clonedStory);
 		removeStepsWhenItGoesBackwards(clonedStory);
 		
-		return clonedStory;
-	}
-
-	private Story cloneStory(Story story) {
-		Story clonedStory = new Story(story.getKey(), config);
-		clonedStory.setCreationDate(story.getCreationDate());
-		clonedStory.setChangelog(getClonedChanges(story));
 		return clonedStory;
 	}
 	
@@ -147,10 +140,6 @@ public class CfdCreator {
 		return config.getStatusList().get(0).toUpperCase();
 	}
 
-	private List<StatusChange> getClonedChanges(Story story) {
-		return new ArrayList<StatusChange>(story.getChangelog());
-	}
-
 	public String generate(List<Story> stories) {
 		config.getLogger().log(Level.INFO, "Generating CFD Data");
 		
@@ -164,12 +153,25 @@ public class CfdCreator {
 		return data.toString();
 	}
 
-	private void buildHeader(StringBuilder data) {
+	public void buildHeader(StringBuilder data) {
 		data.append("name");
+		
+		appendStatusesToHeader(data);
+		appendFieldsToHeader(data);
+		
+		data.append("\n");
+	}
+
+	private void appendFieldsToHeader(StringBuilder data) {
+		config.getFields().forEach((field) -> {
+			data.append(";").append(field);
+		});
+	}
+
+	private void appendStatusesToHeader(StringBuilder data) {
 		statuses.forEach((status)->{
 			data.append(";").append(status);
 		});
-		data.append("\n");
 	}
 
 	private void generateDataForStories(List<Story> stories, StringBuilder data) {
@@ -196,11 +198,29 @@ public class CfdCreator {
 
 	private void generateDataForStory(StringBuilder data, Story story) {
 		data.append(story.getKey());
+		appendStatusesDatesToEachLine(data, story);
+		appendFieldsToEachLine(data, story);
+		
+		data.append("\n");
+	}
+
+	private void appendFieldsToEachLine(StringBuilder data, Story story) {
+		config.getFields().forEach((field) -> {
+			data.append(story.getFieldValueByName(field)).append(config.getCSVSeparator());
+		});
+		
+		removeTrailingSeparator(data);
+	}
+
+	private void removeTrailingSeparator(StringBuilder data) {
+		data.delete(data.length() - config.getCSVSeparator().length(), data.length());
+	}
+
+	private void appendStatusesDatesToEachLine(StringBuilder data, Story story) {
 		statuses.forEach((status)->{
 			DateTime stageStart = story.getStageStart(status);
 			
 			data.append(config.getCSVSeparator()).append(stageStart == null? "" : config.getDateTimeFormatter().print(stageStart));
 		});
-		data.append("\n");
 	}
 }

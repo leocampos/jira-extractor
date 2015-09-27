@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
@@ -18,6 +20,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.thoughtworks.jira.StatusChange;
 import com.thoughtworks.jira.Story;
+import com.thoughtworks.jira.TestUtil;
 
 public class CfdCreatorTest {
 	private static final String READY_FOR_DEV = "Ready for Dev";
@@ -27,6 +30,7 @@ public class CfdCreatorTest {
 	private static final String BACKLOG = "Backlog";
 	
 	private DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm");
+	private CfdCreator creator;
 	
 	@Mock
 	private Config mockConfig;
@@ -38,6 +42,8 @@ public class CfdCreatorTest {
 		Mockito.stub(mockConfig.getDateTimeFormatter()).toReturn(formatter);
 		Mockito.stub(mockConfig.getCSVSeparator()).toReturn(";");
 		Mockito.stub(mockConfig.getLogger()).toReturn(Logger.getLogger("TESTE"));
+		
+		creator = new CfdCreator(mockConfig);
 	}
 	
 	@Test
@@ -54,7 +60,6 @@ public class CfdCreatorTest {
 	}
 
 	private List<Story> createAndRestructure(List<Story> stories) {
-		CfdCreator creator = new CfdCreator(mockConfig);
 		List<Story> reestructuredList = creator.restructureDataForCFD(stories);
 		return reestructuredList;
 	}
@@ -133,22 +138,41 @@ public class CfdCreatorTest {
 	}
 	
 	@Test
-	public void testGenerate() {
+	public void testGenerateShouldCreateHeaderAndLines() {
 		List<Story> stories = new ArrayList<>();
-		
-		
+		Map<String, String> fields = TestUtil.createMap("A","AV","B", "BV");
+		prepareFields(fields);
+
 		Story story1 = new Story("História 1", mockConfig);
 		story1.setCreationDate(parseDate("30/06/2015 10:30"));
 		story1.addStatusChange(new StatusChange(READY_FOR_DEV, formatter.parseDateTime("01/07/2015 10:30")));
 		story1.addStatusChange(new StatusChange(IN_PROGRESS, formatter.parseDateTime("02/07/2015 10:30")));
+		story1.setFields(fields);
 		stories.add(story1);
 		
 		Story story2 = new Story("História 2", mockConfig);
 		story2.setCreationDate(parseDate("05/07/2015 10:30"));
+		story2.setFields(fields);
 		stories.add(story2);
 		
-		CfdCreator creator = new CfdCreator(mockConfig);
-		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE\nHistória 1;30/06/2015 10:30;01/07/2015 10:30;02/07/2015 10:30;;\nHistória 2;05/07/2015 10:30;;;;\n", creator.generate(stories));
+		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE;A;B\nHistória 1;30/06/2015 10:30;01/07/2015 10:30;02/07/2015 10:30;;AV;BV\nHistória 2;05/07/2015 10:30;;;;AV;BV\n", creator.generate(stories));
+	}
+
+	private void prepareFields(Map<String, String> fields) {
+		Mockito.stub(mockConfig.getFields()).toReturn(fields.keySet());
+	}
+	
+	@Test
+	public void buildHeaderShouldListStatusesFollowedByFields() throws Exception {
+		HashSet<String> fields = new HashSet<String>();
+		fields.add("summary");
+		fields.add("size");
+		
+		Mockito.stub(mockConfig.getFields()).toReturn(fields);
+		StringBuilder data = new StringBuilder();
+		creator.buildHeader(data);
+		
+		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE;summary;size\n", data.toString());
 	}
 
 	private DateTime parseDate(String date) {
