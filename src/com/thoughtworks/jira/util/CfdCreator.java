@@ -163,6 +163,8 @@ public class CfdCreator {
 	}
 
 	private void appendFieldsToHeader(StringBuilder data) {
+		if(config.getFields() == null) return;
+		
 		config.getFields().forEach((field) -> {
 			data.append(";").append(field);
 		});

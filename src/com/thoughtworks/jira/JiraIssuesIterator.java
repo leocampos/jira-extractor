@@ -14,6 +14,8 @@ import com.atlassian.util.concurrent.Promise;
 import com.thoughtworks.jira.util.Config;
 
 public class JiraIssuesIterator implements Iterator<Issue> {
+	private static final String NAVIGABLE = "*navigable";
+	private static final String ALL = "*all";
 	private SearchRestClient searchClient;
     private int pageSize;
     private String jql;
@@ -45,22 +47,28 @@ public class JiraIssuesIterator implements Iterator<Issue> {
 
     private Set<String> addRequiredFieldsIfNotEmpty(Set<String> originalFields) {
     	if(originalFields == null) return null;
+    	if(containsSpecialFields(originalFields)) return originalFields;
     	
-    	if((originalFields.contains("*all") || originalFields.contains("*navigable"))) return originalFields;
-    	
-    	Set<String> newFields = new HashSet<>();
+    	return cloneFieldsAndAddRequired(originalFields);
+	}
+
+	private Set<String> cloneFieldsAndAddRequired(Set<String> originalFields) {
+		Set<String> newFields = new HashSet<>();
     	newFields.addAll(originalFields);
     	newFields.addAll(new HashSet<String>(Arrays.asList(new String[]{"summary", "issuetype", "created", "updated", "project" , "status"})));
     	
 		return newFields;
 	}
 
+	private boolean containsSpecialFields(Set<String> originalFields) {
+		return originalFields.contains(ALL) || originalFields.contains(NAVIGABLE);
+	}
+
 	@Override
     public boolean hasNext() {
     	setupIfFirstTime();
     	
-    	if(maxNumberOfItems != null && actualItem >= maxNumberOfItems) return false;
-    	
+    	if(isMaxExausted()) return false;
     	if(hasNextInActualPage()) return true;
     	if(isLastPage()) return false;
     	
@@ -69,6 +77,10 @@ public class JiraIssuesIterator implements Iterator<Issue> {
     	
         return hasNext();
     }
+
+	private boolean isMaxExausted() {
+		return maxNumberOfItems != null && actualItem >= maxNumberOfItems;
+	}
 
 	private void turnPage() {
 		actualPage++;
@@ -83,20 +95,18 @@ public class JiraIssuesIterator implements Iterator<Issue> {
 	}
 
 	private void setupIfFirstTime() {
-		if(searchResult == null) {
-    		search();
-    		issueTotal = searchResult.getTotal();
-    	}
+		if(searchResult != null) return;
+		
+		search();
+		issueTotal = searchResult.getTotal();
 	}
 
     @Override
     public Issue next() {
-    	if(hasNext()) {
-    		actualItem++;
-    		return iterator.next();
-    	}
+    	if(!hasNext()) throw new NoSuchElementException();
     	
-        throw new NoSuchElementException();
+		actualItem++;
+		return iterator.next();
     }
 
 

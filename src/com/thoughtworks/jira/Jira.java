@@ -46,9 +46,39 @@ public class Jira {
 		
 		return Collections.unmodifiableList(issues);
 	}
+	
+	private JiraRestClient getRestClient() {
+		authentication.askForClientsLoginAndPassword();
+		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(config.getJiraUri(), authentication.getLogin(), authentication.getPassword());
+	}
 
 	private Iterator<Issue> retrieveIssues(JiraRestClient restClient) {
 		return new JiraIssuesIterator(config, restClient.getSearchClient());
+	}
+	
+	private void readChangelogFromEachIssueAndPopulateIssues(IssueRestClient issueClient, Iterator<Issue> issueIterator) {
+		while(issueIterator.hasNext())
+			retrieveChangeLogAndPopulateIssuesAsync(issueClient, issueIterator.next());
+		
+		awaitTermination();
+	}
+
+	private void retrieveChangeLogAndPopulateIssuesAsync(IssueRestClient issueClient, Issue issue) {
+		threadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				retrieveChangelogAndPopulateIssues(issueClient.getIssue(issue.getKey(), expand).claim());
+			}
+		});
+	}
+	
+	private void retrieveChangelogAndPopulateIssues(Issue issueWithExpando) {
+		logINFO(String.format("Retrieving changelog for %s", issueWithExpando.getKey()));
+		
+		Story story = new Story(issueWithExpando, config);
+		addStatusChangeToStory(issueWithExpando, story);
+		
+		issues.add(story);
 	}
 
 	private void logINFO(String msg) {
@@ -57,21 +87,6 @@ public class Jira {
 	
 	private void logWarning(String msg) {
 		config.getLogger().log(Level.WARNING, msg);
-	}
-	
-	private JiraRestClient getRestClient() {
-		authentication.askForClientsLoginAndPassword();
-		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(config.getJiraUri(), authentication.getLogin(), authentication.getPassword());
-	}
-
-	private void readChangelogFromEachIssueAndPopulateIssues(IssueRestClient issueClient, Iterator<Issue> issueIterator) {
-		while(issueIterator.hasNext()) {
-			Issue issue = issueIterator.next();
-			
-			retrieveChangeLogAndPopulateIssuesAsync(issueClient, issue);
-		}
-		
-		awaitTermination();
 	}
 
 	private void awaitTermination() {
@@ -83,32 +98,22 @@ public class Jira {
 		}
 	}
 
-	private void retrieveChangeLogAndPopulateIssuesAsync(IssueRestClient issueClient, Issue issue) {
-		threadPool.execute(new Runnable() {
-			@Override
-			public void run() {
-				retrieveChangelogAndPopulateIssues(issueClient.getIssue(issue.getKey(), expand).claim());
-			}
-		});
-	}
-
-	private void retrieveChangelogAndPopulateIssues(Issue issueWithExpando) {
-		logINFO(String.format("Retrieving changelog for %s", issueWithExpando.getKey()));
-		
-		Story story = new Story(issueWithExpando, config);
-		addStatusChangeToStory(issueWithExpando, story);
-		
-		issues.add(story);
-	}
-
 	private void addStatusChangeToStory(Issue issueWithExpando, Story story) {
 		for (ChangelogGroup changelogGroup : issueWithExpando.getChangelog()) {
-			for (ChangelogItem changelogItem : changelogGroup.getItems()) {
-				if(!isStatusChange(changelogItem)) continue;
-				
-				story.addStatusChange(new StatusChange(changelogItem, changelogGroup.getCreated()));
-			}
+			addStatusChangeIfPresent(story, changelogGroup);
 		}
+	}
+
+	private void addStatusChangeIfPresent(Story story, ChangelogGroup changelogGroup) {
+		for (ChangelogItem changelogItem : changelogGroup.getItems()) {
+			if(isNotStatusChange(changelogItem)) continue;
+			
+			story.addStatusChange(new StatusChange(changelogItem, changelogGroup.getCreated()));
+		}
+	}
+
+	private boolean isNotStatusChange(ChangelogItem changelogItem) {
+		return !isStatusChange(changelogItem);
 	}
 
 	private boolean isStatusChange(ChangelogItem changelogItem) {
