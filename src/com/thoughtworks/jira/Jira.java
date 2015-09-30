@@ -81,14 +81,6 @@ public class Jira {
 		issues.add(story);
 	}
 
-	private void logINFO(String msg) {
-		config.getLogger().log(Level.INFO, msg);
-	}
-	
-	private void logWarning(String msg) {
-		config.getLogger().log(Level.WARNING, msg);
-	}
-
 	private void awaitTermination() {
 		threadPool.shutdown();
 		try {
@@ -118,5 +110,13 @@ public class Jira {
 
 	private boolean isStatusChange(ChangelogItem changelogItem) {
 		return "status".equalsIgnoreCase(changelogItem.getField());
+	}
+	
+	private void logINFO(String msg) {
+		config.getLogger().log(Level.INFO, msg);
+	}
+	
+	private void logWarning(String msg) {
+		config.getLogger().log(Level.WARNING, msg);
 	}
 }

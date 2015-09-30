@@ -184,7 +184,17 @@ public class CfdCreatorTest {
 		
 		assertEquals("name;BACKLOG;READY FOR DEV;IN PROGRESS;QA;DONE\n", data.toString());
 	}
-
+	
+	@Test
+	public void appendFieldsToEachLineShouldNotAddFieldsIfConfigHasNoFields() {
+		Mockito.stub(mockConfig.getFields()).toReturn(null);
+	
+		StringBuilder data = new StringBuilder();
+		creator.appendFieldsToEachLine(data, new Story("", mockConfig));
+		
+		assertEquals("", data.toString());
+	}
+	
 	private DateTime parseDate(String date) {
 		return formatter.parseDateTime(date);
 	}

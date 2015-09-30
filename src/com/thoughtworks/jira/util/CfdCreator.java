@@ -206,10 +206,16 @@ public class CfdCreator {
 		data.append("\n");
 	}
 
-	private void appendFieldsToEachLine(StringBuilder data, Story story) {
+	public void appendFieldsToEachLine(StringBuilder data, Story story) {
+		if(!hasFieldsConfigured()) return;
+		
 		config.getFields().forEach((field) -> {
 			data.append(config.getCSVSeparator()).append(story.getFieldValueByName(field));
 		});
+	}
+
+	private boolean hasFieldsConfigured() {
+		return !(config == null || config.getFields() == null);
 	}
 
 	private void appendStatusesDatesToEachLine(StringBuilder data, Story story) {
